@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"time"
 
 	"gopkg.in/telegram-bot-api.v4"
@@ -24,6 +25,7 @@ func main() {
 	webhookBaseURL := flag.String("webhookBaseURL", "", "Base URL for webhook")
 	port := flag.String("port", "80", "port to listen")
 	charlength := flag.Int("charlength", 20, "max length for username/password")
+	illegalChars := flag.String("illegalchars", "", "Illegal chars in name field")
 	flag.Parse()
 
 	if *botToken == "" {
@@ -85,7 +87,7 @@ func main() {
 				return
 			}
 			for _, user := range *update.Message.NewChatMembers {
-				if checkIfSpammer(user.UserName, user.FirstName+user.LastName, *charlength) {
+				if checkIfSpammer(user.UserName, user.FirstName+user.LastName, *charlength, *illegalChars) {
 
 					bot.KickChatMember(tgbotapi.KickChatMemberConfig{
 						ChatMemberConfig: tgbotapi.ChatMemberConfig{
@@ -140,7 +142,10 @@ func startServer(port string) (*http.Server, error) {
 
 }
 
-func checkIfSpammer(username, name string, length int) bool {
+func checkIfSpammer(username, name string, length int, illegalChars string) bool {
+	if illegalChars != "" && strings.Contains(name, illegalChars) {
+		return true
+	}
 	if len(username) > length || len(name) > length {
 		return true
 	}
