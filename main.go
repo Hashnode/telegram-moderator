@@ -23,7 +23,7 @@ func main() {
 	debug := flag.Bool("debug", true, "turn debug bode on/off")
 	webhookBaseURL := flag.String("webhookBaseURL", "", "Base URL for webhook")
 	port := flag.String("port", "80", "port to listen")
-	charlength := flag.Int("charlength", 20, "max length for username/password")
+	charlength := flag.Int("charlength", 20, "max length for username/name")
 	flag.Parse()
 
 	if *botToken == "" {
