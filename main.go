@@ -83,19 +83,31 @@ func main() {
 
 		// Check for spammers
 		go func(update tgbotapi.Update) {
-			if update.Message.NewChatMembers == nil {
-				return
-			}
-			for _, user := range *update.Message.NewChatMembers {
-				if checkIfSpammer(user.UserName, user.FirstName+user.LastName, *charlength, *illegalChars) {
+			if update.Message.NewChatMembers != nil {
 
-					bot.KickChatMember(tgbotapi.KickChatMemberConfig{
-						ChatMemberConfig: tgbotapi.ChatMemberConfig{
-							UserID: user.ID,
-							ChatID: update.Message.Chat.ID,
-						},
-					})
+				// Remove this service message
+				// Then check if the newly joined member is a spammer
+				bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
+					ChatID:    update.Message.Chat.ID,
+					MessageID: update.Message.MessageID,
+				})
+
+				for _, user := range *update.Message.NewChatMembers {
+					if checkIfSpammer(user.UserName, user.FirstName+user.LastName, *charlength, *illegalChars) {
+						bot.KickChatMember(tgbotapi.KickChatMemberConfig{
+							ChatMemberConfig: tgbotapi.ChatMemberConfig{
+								UserID: user.ID,
+								ChatID: update.Message.Chat.ID,
+							},
+						})
+					}
 				}
+			} else if update.Message.LeftChatMember != nil {
+				// Just delete the service message
+				bot.DeleteMessage(tgbotapi.DeleteMessageConfig{
+					ChatID:    update.Message.Chat.ID,
+					MessageID: update.Message.MessageID,
+				})
 			}
 		}(update)
 
